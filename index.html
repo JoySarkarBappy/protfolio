@@ -169,6 +169,12 @@ a{color:inherit}
   opacity:0;transition:opacity .3s;font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase}
 .shot:hover figcaption,.shot:focus-visible figcaption{opacity:1}
 .gal-note{margin-top:1.25rem;color:var(--ink-2);font-size:.95rem}
+.shot.extra{display:none}
+.gallery.open .shot.extra{display:block}
+.gal-toggle{display:inline-flex;align-items:center;gap:.5rem;margin-top:1.4rem;padding:.7rem 1.2rem;cursor:pointer;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);
+  background:transparent;border:1px solid var(--ink)}
+.gal-toggle:hover,.gal-toggle:focus-visible{background:var(--ink);color:var(--surface)}
 .lightbox{position:fixed;inset:0;z-index:80;background:rgba(12,16,20,.95);display:none;
   align-items:center;justify-content:center;padding:clamp(1rem,4vw,3rem)}
 .lightbox.open{display:flex}
@@ -585,6 +591,7 @@ function initGallery(){
   var wrap=document.getElementById('gallery'),sect=document.getElementById('photography');
   function url(p){ return p.drive ? 'https://drive.google.com/thumbnail?id='+p.drive+'&sz=w1600' : p.src; }
   if(!PHOTOS.length){ sect.style.display='none'; return; }
+  var LIMIT=6;   /* photos shown before pressing "Show all" */
   if(PHOTOS.length===1)wrap.classList.add('g1');
   else if(PHOTOS.length===2)wrap.classList.add('g2');
 
@@ -597,8 +604,22 @@ function initGallery(){
     b.appendChild(im);
     if(p.caption){var c=document.createElement('figcaption');c.textContent=p.caption;b.appendChild(c);}
     b.addEventListener('click',function(){open(i);});
+    if(i>=LIMIT)b.classList.add('extra');
     wrap.appendChild(b);
   });
+
+  if(PHOTOS.length>LIMIT){
+    var tg=document.createElement('button');tg.type='button';tg.className='gal-toggle';
+    tg.setAttribute('aria-expanded','false');
+    var label=function(){tg.textContent=wrap.classList.contains('open')?'Show fewer photographs':'Show all '+PHOTOS.length+' photographs';};
+    label();
+    tg.addEventListener('click',function(){
+      var openNow=wrap.classList.toggle('open');
+      tg.setAttribute('aria-expanded',openNow?'true':'false');label();
+      if(!openNow)sect.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+    wrap.parentNode.insertBefore(tg,wrap.nextSibling);
+  }
 
   var box=document.getElementById('lightbox'),img=document.getElementById('lbImg'),
       cap=document.getElementById('lbCap'),at=0,last=null;
